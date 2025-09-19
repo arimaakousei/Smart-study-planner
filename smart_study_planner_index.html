@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Study Planner</title>
+  <style>
+ :root {
+  --bg: linear-gradient(135deg, #eef2ff, #fdfdfd);
+  --card: rgba(255, 255, 255, 0.9);
+  --accent: #2563eb;
+  --accent2: #3b82f6;
+  --muted: #6b7280;
+  --success: #16a34a;
+  --danger: #ef4444;
+  --radius: 16px;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  margin: 0;
+  padding: 20px;
+  color: #0f172a;
+  backdrop-filter: blur(6px);
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.top-actions {
+  display: flex;
+  gap: 12px;
+}
+
+button {
+  background: var(--accent);
+  color: white;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.15s, box-shadow 0.3s;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.2);
+}
+
+button:hover {
+  background: var(--accent2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid #d1d5db;
+  box-shadow: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.6s ease;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+input, select, textarea {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent2);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.task-list {
+  margin-top: 16px;
+  max-height: 480px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent2) transparent;
+}
+
+.task-list::-webkit-scrollbar {
+  width: 6px;
+}
+.task-list::-webkit-scrollbar-thumb {
+  background: var(--accent2);
+  border-radius: 8px;
+}
+
+.task {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  background: #fff;
+}
+
+.task:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+.task .meta {
+  flex: 1;
+  margin-left: 10px;
+}
+
+.task .title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+
+.task .muted {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.controls button {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.controls .danger {
+  background: var(--danger);
+  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.2);
+}
+
+.progress {
+  margin-top: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.progress > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.4s ease;
+}
+
+.timeline {
+  margin-top: 16px;
+  border-radius: var(--radius);
+  background: #ffffffcc;
+  padding: 16px;
+  border: 1px dashed #e5e7eb;
+  height: 280px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-image: linear-gradient(to right, #e5e7eb 1px, transparent 1px);
+  background-size: 80px 100%;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.lane {
+  position: relative;
+  height: 32px;
+  margin-bottom: 24px;
+}
+
+.lane-label {
+  position: absolute;
+  left: -100px;
+  font-size: 13px;
+  color: var(--muted);
+  top: 6px;
+  font-weight: 600;
+}
+
+.task-bar {
+  position: absolute;
+  top: 0;
+  height: 32px;
+  border-radius: 10px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: slideIn 0.5s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s, opacity 0.3s;
+}
+
+.task-bar:hover {
+  transform: scale(1.03);
+  opacity: 0.95;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+footer {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+}
+</style>
+
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Smart Study Planner</h1>
+      <div class="top-actions">
+        <button class="ghost" id="btn-export">Export</button>
+        <button class="ghost" id="btn-import">Import</button>
+        <button id="btn-reminders">Enable Reminders</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <form id="task-form">
+          <label>Title</label>
+          <input id="title" required placeholder="Read Chapter 4">
+
+          <label>Subject</label>
+          <input id="subject" placeholder="Chemistry">
+
+          <label>Start</label>
+          <input id="start" type="datetime-local">
+
+          <label>Due</label>
+          <input id="due" type="datetime-local">
+
+          <label>Duration (minutes)</label>
+          <input id="duration" type="number" min="1">
+
+          <label>Priority</label>
+          <select id="priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+
+          <label>Notes</label>
+          <textarea id="notes" rows="3"></textarea>
+
+          <button type="submit">Save Task</button>
+        </form>
+
+        <h3 style="margin-top:16px;font-size:15px;color:var(--muted)">Tasks (<span id="task-count">0</span>)</h3>
+        <div class="task-list" id="task-list"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:8px;color:var(--muted);font-size:14px">Timeline</h3>
+        <div class="timeline" id="timeline"></div>
+        <footer>Tip: Enable reminders to get notified before tasks are due.</footer>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'smartStudyPlanner.tasks.v2'
+    let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+
+    const $ = (id) => document.getElementById(id)
+    const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
+
+    function renderTasks(){
+      const list = $('task-list')
+      list.innerHTML = ''
+      $('task-count').textContent = tasks.length
+      tasks.forEach(t=>{
+        const el = document.createElement('div')
+        el.className = 'task'
+        el.innerHTML = `
+          <input type="checkbox" ${t.completed?'checked':''} data-id="${t.id}">
+          <div class="meta">
+            <div class="title">${t.title} <span class="muted">— ${t.subject}</span></div>
+            <div class="muted">${t.due?new Date(t.due).toLocaleString():'No due'}</div>
+            <div class="progress"><i style="width:${t.completed?100: (t.duration? Math.min(100,t.duration/120*100):0)}%"></i></div>
+          </div>
+          <div class="controls">
+            <button data-edit="${t.id}">Edit</button>
+            <button class="danger" data-del="${t.id}">Delete</button>
+          </div>
+        `
+        list.appendChild(el)
+      })
+
+      list.querySelectorAll('[data-del]').forEach(btn=>btn.onclick=e=>{
+        const id = e.target.getAttribute('data-del')
+        tasks = tasks.filter(x=>x.id!==id)
+        save(); renderTasks(); renderTimeline()
+      })
+      list.querySelectorAll('[data-edit]').forEach(btn=>btn.onclick=e=>{
+        const id = e.target.getAttribute('data-edit')
+        const t = tasks.find(x=>x.id===id)
+        $('title').value = t.title
+        $('subject').value = t.subject
+        $('start').value = t.start
+        $('due').value = t.due
+        $('duration').value = t.duration
+        $('priority').value = t.priority
+        $('notes').value = t.notes
+        tasks = tasks.filter(x=>x.id!==id)
+        save(); renderTasks(); renderTimeline()
+      })
+      list.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.onchange=e=>{
+        const id = e.target.getAttribute('data-id')
+        tasks = tasks.map(t=>t.id===id?{...t,completed:e.target.checked}:t)
+        save(); renderTasks(); renderTimeline()
+      })
+    }
+
+    function renderTimeline(){
+      const laneContainer = $('timeline')
+      laneContainer.innerHTML = ''
+      if(tasks.length===0) return;
+
+      // get min and max time across all tasks
+      const validTasks = tasks.filter(t=>t.start && t.due)
+      if(validTasks.length===0) return;
+      const minStart = Math.min(...validTasks.map(t=>new Date(t.start).getTime()))
+      const maxDue = Math.max(...validTasks.map(t=>new Date(t.due).getTime()))
+      const totalSpan = maxDue - minStart
+
+      let subjects = {}
+      tasks.forEach(t=>{
+        subjects[t.subject||'General'] = subjects[t.subject||'General']||[]
+        subjects[t.subject||'General'].push(t)
+      })
+
+      for(const [sub,arr] of Object.entries(subjects)){
+        const lane = document.createElement('div')
+        lane.className='lane'
+        const label=document.createElement('div')
+        label.className='lane-label'
+        label.textContent=sub
+        lane.appendChild(label)
+
+        arr.forEach(t=>{
+          if(!t.start || !t.due) return;
+          const start = new Date(t.start).getTime()
+          const due = new Date(t.due).getTime()
+          const leftPct = ((start - minStart)/totalSpan)*100
+          const widthPct = ((due - start)/totalSpan)*100
+          const bar=document.createElement('div')
+          bar.className='task-bar'
+          bar.style.left = leftPct+'%'
+          bar.style.width = widthPct+'%'
+          bar.style.background = t.completed ? 'linear-gradient(90deg,var(--success),#34d399)' : (t.priority==='high'?'#ef4444': (t.priority==='medium'? 'linear-gradient(90deg,var(--accent),var(--accent2))':'#64748b'))
+          bar.textContent = t.title
+          lane.appendChild(bar)
+        })
+
+        laneContainer.appendChild(lane)
+      }
+    }
+
+    $('task-form').addEventListener('submit', e=>{
+      e.preventDefault()
+      const t = {
+        id: Math.random().toString(36).slice(2,9),
+        title: $('title').value,
+        subject: $('subject').value || 'General',
+        start: $('start').value,
+        due: $('due').value,
+        duration: $('duration').value,
+        priority: $('priority').value,
+        notes: $('notes').value,
+        completed: false
+      }
+      tasks.push(t)
+      save(); renderTasks(); renderTimeline(); e.target.reset()
+    })
+
+    renderTasks(); renderTimeline()
+  </script>
+</body>
+</html>
